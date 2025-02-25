@@ -84,7 +84,7 @@ export default function Home() {
       }]);
     }
     
-    if (newAnswers.length >= 2) {
+    if (newAnswers.length >= 10) {
       setAnalyzing(true);
       try {
         const response = await fetch('/api/generate-result', {
