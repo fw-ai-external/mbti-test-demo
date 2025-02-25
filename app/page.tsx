@@ -30,6 +30,7 @@ export default function Home() {
   const [currentThinking, setCurrentThinking] = useState('');
   const thinkingBoxRef = useRef<HTMLDivElement>(null);
   const [questionHistory, setQuestionHistory] = useState<QuestionHistory[]>([]);
+  const [nextQuestion, setNextQuestion] = useState<Question | null>(null);
 
   // Add useEffect to auto-scroll
   useEffect(() => {
@@ -38,9 +39,8 @@ export default function Home() {
     }
   }, [currentThinking]);
 
-  // Function to generate the next question
-  const generateNextQuestion = async () => {
-    setLoading(true);
+  // Modify the question generation function to optionally store as next question
+  const generateQuestion = async (storeAsNext: boolean = false) => {
     try {
       const response = await fetch('/api/generate-question', {
         method: 'POST',
@@ -57,11 +57,32 @@ export default function Home() {
         }),
       });
       const data = await response.json();
-      setCurrentQuestion(data);
+      
+      if (storeAsNext) {
+        setNextQuestion(data);
+      } else {
+        setCurrentQuestion(data);
+      }
     } catch (error) {
       console.error('Failed to generate question:', error);
     }
-    setLoading(false);
+  };
+
+  // Function to generate the next question
+  const generateNextQuestion = async () => {
+    setLoading(true);
+    if (nextQuestion) {
+      // Use pre-generated question
+      setCurrentQuestion(nextQuestion);
+      setNextQuestion(null);
+      setLoading(false);
+      // Start pre-generating the next question
+      generateQuestion(true);
+    } else {
+      // Fall back to generating question now
+      await generateQuestion(false);
+      setLoading(false);
+    }
   };
 
   // Start quiz after API key is provided
@@ -69,6 +90,8 @@ export default function Home() {
     e.preventDefault();
     setShowApiKeyModal(false);
     generateNextQuestion();
+    // Pre-generate next question
+    generateQuestion(true);
   };
 
   // Handle answer selection
@@ -94,7 +117,10 @@ export default function Home() {
           },
           body: JSON.stringify({
             apiKey,
-            answers: newAnswers,
+            answers: questionHistory.map(h => ({
+              question: h.question,
+              answer: h.answer
+            }))
           }),
         });
 
