@@ -41,7 +41,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string>("");
   const [analyzing, setAnalyzing] = useState(false);
-  const [streamedResult, setStreamedResult] = useState("");
   const [mbtiResult, setMbtiResult] = useState<MBTIResult>({ type: '', explanation: '', thinking: '' });
   const [currentThinking, setCurrentThinking] = useState('');
   const thinkingBoxRef = useRef<HTMLDivElement>(null);
@@ -65,7 +64,6 @@ export default function Home() {
         },
         body: JSON.stringify({
           apiKey,
-          previousAnswers: answers,
           previousQuestions: questionHistory.map(h => ({
             question: h.question,
             answer: h.answer
@@ -209,15 +207,15 @@ export default function Home() {
                         setAnalyzing(false);
                         setResult(resultJson.mbti);
                       }
-                    } catch (e) {
+                    } catch (error) {
+                      console.error('Failed to parse JSON:', error);
                       // Continue accumulating if JSON is not complete
                     }
                   }
                 }
               }
-
-              setStreamedResult(accumulatedResult);
-            } catch (e) {
+            } catch (error) {
+              console.error('JSON parsing error:', error);
               // Skip invalid chunks
               continue;
             }

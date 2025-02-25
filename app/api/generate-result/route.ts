@@ -71,7 +71,10 @@ export async function POST(request: Request) {
         'Connection': 'keep-alive',
       },
     });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to generate result' }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('Failed to generate result:', error);
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Failed to generate result' 
+    }, { status: 500 });
   }
 } 

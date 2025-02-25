@@ -6,7 +6,7 @@ interface QuestionHistory {
 }
 
 export async function POST(request: Request) {
-  const { apiKey, previousAnswers, previousQuestions } = await request.json();
+  const { apiKey, previousQuestions } = await request.json();
 
   try {
     const response = await fetch("https://api.fireworks.ai/inference/v1/chat/completions", {
@@ -116,7 +116,10 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(parsedContent);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to generate question' }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('Failed to generate question:', error);
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Failed to generate question' 
+    }, { status: 500 });
   }
 } 
