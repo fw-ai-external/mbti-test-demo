@@ -147,14 +147,39 @@ export default function Home() {
         let isInThinkingBlock = false;
         let thinkingContent = '';
         
+        // Process the stream
         while (true) {
           const { done, value } = await reader.read();
           if (done) {
-            // Only log the final complete output
-            console.log('Complete analysis:', {
-              thinking: thinkingContent.replace(/<\/?think>/g, '').trim(),
-              result: accumulatedResult.split('</think>').pop()?.trim()
-            });
+            // Process final result after stream is complete
+            try {
+              // Split at </think> and get everything after it
+              const parts = accumulatedResult.split('</think>');
+              if (parts.length > 1) {
+                const afterThinking = parts[parts.length - 1].trim();
+                
+                // Find the last JSON object in the text
+                const lastJsonStart = afterThinking.lastIndexOf('{');
+                const lastJsonEnd = afterThinking.lastIndexOf('}');
+                
+                if (lastJsonStart !== -1 && lastJsonEnd !== -1 && lastJsonEnd > lastJsonStart) {
+                  const jsonString = afterThinking.slice(lastJsonStart, lastJsonEnd + 1);
+                  const resultJson = JSON.parse(jsonString);
+                  
+                  if (resultJson.mbti) {
+                    setMbtiResult(prev => ({
+                      ...prev,
+                      type: resultJson.mbti,
+                      thinking: thinkingContent.replace(/<\/?think>/g, '').trim()
+                    }));
+                    setAnalyzing(false);
+                    setResult(resultJson.mbti);
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Failed to parse final result:', error);
+            }
             break;
           }
           
@@ -167,57 +192,30 @@ export default function Home() {
             const jsonStr = line.slice(6).trim();
             if (!jsonStr || jsonStr === '[DONE]') continue;
 
+            let jsonData;
             try {
-              const jsonData = JSON.parse(jsonStr);
-              const content = jsonData.choices?.[0]?.delta?.content;
-              if (!content) continue;
-              
-              accumulatedResult += content;
-
-              // Handle thinking blocks
-              if (content.includes('<think>')) {
-                isInThinkingBlock = true;
-              }
-              if (isInThinkingBlock) {
-                thinkingContent += content;
-                if (content.includes('</think>')) {
-                  isInThinkingBlock = false;
-                }
-                setCurrentThinking(thinkingContent);
-              }
-
-              // Only try to parse JSON after thinking block is complete
-              if (!isInThinkingBlock && accumulatedResult.includes('</think>')) {
-                const parts = accumulatedResult.split('</think>');
-                if (parts.length > 1) {
-                  const afterThinking = parts[parts.length - 1].trim();
-                  if (afterThinking.includes('{') && afterThinking.includes('}')) {
-                    try {
-                      const jsonStartIndex = afterThinking.lastIndexOf('{');
-                      const jsonEndIndex = afterThinking.lastIndexOf('}') + 1;
-                      const jsonString = afterThinking.slice(jsonStartIndex, jsonEndIndex);
-                      
-                      const resultJson = JSON.parse(jsonString);
-                      if (resultJson.mbti) {
-                        setMbtiResult(prev => ({
-                          ...prev,
-                          type: resultJson.mbti,
-                          thinking: thinkingContent.replace(/<\/?think>/g, '').trim()
-                        }));
-                        setAnalyzing(false);
-                        setResult(resultJson.mbti);
-                      }
-                    } catch (error) {
-                      console.error('Failed to parse JSON:', error);
-                      // Continue accumulating if JSON is not complete
-                    }
-                  }
-                }
-              }
-            } catch (error) {
-              console.error('JSON parsing error:', error);
-              // Skip invalid chunks
+              jsonData = JSON.parse(jsonStr);
+            } catch {
+              // If we can't parse the JSON, just accumulate the raw content
+              accumulatedResult += jsonStr;
               continue;
+            }
+
+            const content = jsonData.choices?.[0]?.delta?.content;
+            if (!content) continue;
+            
+            accumulatedResult += content;
+
+            // Handle thinking blocks
+            if (content.includes('<think>')) {
+              isInThinkingBlock = true;
+            }
+            if (isInThinkingBlock) {
+              thinkingContent += content;
+              if (content.includes('</think>')) {
+                isInThinkingBlock = false;
+              }
+              setCurrentThinking(thinkingContent);
             }
           }
         }
