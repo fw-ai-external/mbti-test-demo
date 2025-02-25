@@ -54,8 +54,8 @@ export default function Home() {
     }
   }, [currentThinking]);
 
-  // Modify the question generation function to optionally store as next question
-  const generateQuestion = async (storeAsNext: boolean = false) => {
+  // Modify the question generation function to include retry logic
+  const generateQuestion = async (storeAsNext: boolean = false, retryCount = 0) => {
     try {
       const response = await fetch('/api/generate-question', {
         method: 'POST',
@@ -79,6 +79,15 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Failed to generate question:', error);
+      // Retry once if failed
+      if (retryCount < 1) {
+        console.log('Retrying question generation...');
+        await generateQuestion(storeAsNext, retryCount + 1);
+      } else {
+        // If retry also failed, show error state
+        setLoading(false);
+        alert('Failed to generate question. Please try again.');
+      }
     }
   };
 
