@@ -17,6 +17,42 @@ interface MBTIResult {
   thinking: string;
 }
 
+// First, let's create a QuestionSkeleton component
+const QuestionSkeleton = () => (
+  <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 animate-pulse">
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-6">
+        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-40"></div>
+        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-full w-24"></div>
+      </div>
+      <div className="space-y-3">
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+      </div>
+    </div>
+    
+    <div className="space-y-4">
+      {[...Array(4)].map((_, index) => (
+        <div key={index} className="w-full p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg">
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full mr-4"></div>
+            <div className="flex-1">
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex justify-between items-center">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function Home() {
   const [apiKey, setApiKey] = useState<string>("");
   const [showApiKeyModal, setShowApiKeyModal] = useState(true);
@@ -86,12 +122,37 @@ export default function Home() {
   };
 
   // Start quiz after API key is provided
-  const handleApiKeySubmit = (e: React.FormEvent) => {
+  const handleApiKeySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowApiKeyModal(false);
-    generateNextQuestion();
-    // Pre-generate next question
-    generateQuestion(true);
+    setLoading(true);
+    try {
+      // Test the API key first
+      const testResponse = await fetch('/api/generate-question', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          apiKey,
+          previousAnswers: [],
+          previousQuestions: []
+        }),
+      });
+
+      if (!testResponse.ok) {
+        const errorData = await testResponse.json();
+        throw new Error(errorData.error || 'Invalid API key');
+      }
+
+      setShowApiKeyModal(false);
+      await generateNextQuestion();
+      await generateQuestion(true);
+    } catch (error) {
+      console.error('Failed to start test:', error);
+      alert('Invalid API key. Please check your API key and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle answer selection
@@ -220,7 +281,7 @@ export default function Home() {
     <div className="min-h-screen p-8 flex flex-col items-center justify-center">
       {showApiKeyModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
             <h2 className="text-xl mb-4">Enter your Fireworks AI API Key to Start MBTI Test</h2>
             <form onSubmit={handleApiKeySubmit}>
               <input
@@ -230,13 +291,37 @@ export default function Home() {
                 className="border p-2 rounded w-full dark:bg-gray-700"
                 placeholder="Enter your API key"
                 required
+                disabled={loading}
               />
               <button
                 type="submit"
-                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                className={`mt-4 w-full px-4 py-2 rounded ${
+                  loading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-500 hover:bg-blue-600'
+                } text-white`}
+                disabled={loading}
               >
-                Start Test
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin mr-2"></div>
+                    Verifying...
+                  </div>
+                ) : (
+                  'Start Test'
+                )}
               </button>
+              <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                Get your API key from{' '}
+                <a 
+                  href="https://fireworks.ai" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline"
+                >
+                  Fireworks.ai
+                </a>
+              </p>
             </form>
           </div>
         </div>
@@ -244,7 +329,7 @@ export default function Home() {
 
       <main className="max-w-2xl w-full">
         {loading ? (
-          <div className="text-center">Loading...</div>
+          <QuestionSkeleton />
         ) : analyzing ? (
           <div className="text-center space-y-4">
             <h2 className="text-2xl mb-4">DeepSeek R1 is analyzing your MBTI....</h2>

@@ -7,6 +7,12 @@ interface QuestionHistory {
 
 export async function POST(request: Request) {
   const { apiKey, previousAnswers, previousQuestions } = await request.json();
+  
+  if (!apiKey) {
+    return NextResponse.json({ 
+      error: 'No API key provided. Please provide an API key through the UI.' 
+    }, { status: 401 });
+  }
 
   try {
     const response = await fetch("https://api.fireworks.ai/inference/v1/chat/completions", {
@@ -117,6 +123,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json(parsedContent);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to generate question' }, { status: 500 });
+    console.error('Error generating question:', error);
+    return NextResponse.json({ 
+      error: 'Failed to generate question. Please check your API key and try again.' 
+    }, { status: 500 });
   }
 } 

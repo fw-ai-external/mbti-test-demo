@@ -7,6 +7,12 @@ interface QuestionAnswer {
 
 export async function POST(request: Request) {
   const { apiKey, answers } = await request.json();
+  
+  if (!apiKey) {
+    return NextResponse.json({ 
+      error: 'No API key provided. Please provide an API key through the UI.' 
+    }, { status: 401 });
+  }
 
   try {
     const response = await fetch("https://api.fireworks.ai/inference/v1/chat/completions", {

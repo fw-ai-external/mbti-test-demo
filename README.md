@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MBTI Personality Test with AI
+
+An intelligent MBTI personality assessment tool powered by Fireworks AI's large language models. This application demonstrates advanced AI capabilities in personality analysis through dynamic question generation and detailed reasoning.
+
+## Features
+
+- **Dynamic Question Generation**: Uses Llama-v3-70B to generate contextually aware, scenario-based MBTI questions
+- **Intelligent Analysis**: Leverages DeepSeek-R1 for comprehensive personality assessment
+- **Real-time Reasoning**: Shows the AI's thought process during analysis
+- **Structured Output**: Utilizes JSON-mode for reliable, structured responses
+- **Progressive Assessment**: 10-question adaptive personality evaluation
+
+## AI Models Used
+
+- **Question Generation**: Fireworks AI's Llama-v3-70B-Instruct
+  - Generates subtle, scenario-based questions
+  - Adapts questions based on previous responses
+  - Structured JSON output for consistent question format
+
+- **Personality Analysis**: Fireworks AI's DeepSeek-R1
+  - Real-time analysis with visible reasoning process
+  - Structured MBTI type determination
+  - Streaming response capabilities
+
+## Key Technical Features
+
+1. **Structured JSON Outputs**
+   - Enforced schema validation for question generation
+   - Consistent response formatting
+   - Type-safe data handling
+
+2. **Real-time Reasoning Display**
+   - Stream-based response processing
+   - Live display of AI's analytical process
+   - Transparent decision-making visualization
+
+3. **Advanced Prompt Engineering**
+   - Context-aware question generation
+   - Scenario-based personality assessment
+   - Adaptive questioning based on previous responses
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 16.x or later
+- A Fireworks AI API key ([Get one here](https://fireworks.ai))
+- npm or yarn package manager
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/mbti-ai-test.git
+cd mbti-ai-test
+```
+
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Start the development server:
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Enter your Fireworks AI API key when prompted (if not set in environment variables)
+2. Answer the series of 10 scenario-based questions
+3. Watch the AI's real-time analysis process
+4. Receive your detailed MBTI personality type result
 
-## Learn More
+## Technical Architecture
 
-To learn more about Next.js, take a look at the following resources:
+- **Frontend**: Next.js 13+ with React
+- **API Routes**: Next.js API routes for model interaction
+- **Streaming**: Server-sent events for real-time analysis display
+- **Type Safety**: TypeScript throughout the application
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License - see the LICENSE file for details.
