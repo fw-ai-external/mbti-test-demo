@@ -1,6 +1,22 @@
 'use client'
 import { useState, useEffect, useRef } from "react";
 
+// Add loading animation keyframe
+const loadingKeyframes = `
+@keyframes loading {
+  0% { width: 0%; }
+  50% { width: 100%; }
+  100% { width: 0%; }
+}
+`;
+
+// Add style tag to head
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = loadingKeyframes;
+  document.head.appendChild(style);
+}
+
 interface Question {
   question: string;
   choices: string[];
@@ -244,7 +260,17 @@ export default function Home() {
 
       <main className="max-w-2xl w-full">
         {loading ? (
-          <div className="text-center">Loading...</div>
+          <div className="flex flex-col items-center justify-center space-y-4 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+            <div className="relative w-16 h-16">
+              <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-200 dark:border-blue-900 rounded-full animate-pulse"></div>
+              <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-blue-500 rounded-full animate-spin"></div>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Generating Your Next Question</h2>
+            <p className="text-gray-600 dark:text-gray-400">Please wait a moment...</p>
+            <div className="w-48 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-500 rounded-full animate-[loading_1.5s_ease-in-out_infinite]"></div>
+            </div>
+          </div>
         ) : analyzing ? (
           <div className="text-center space-y-4">
             <h2 className="text-2xl mb-4">DeepSeek R1 is analyzing your MBTI....</h2>
